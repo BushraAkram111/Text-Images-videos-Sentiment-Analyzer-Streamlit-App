@@ -11,6 +11,7 @@ from flair.data import Sentence
 from fer import FER
 from moviepy.editor import VideoFileClip
 import pandas as pd
+from scipy import triu  # Import triu from scipy
 
 # Emoji dictionary
 getEmoji = {
