@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from textblob import TextBlob
 from PIL import Image
 import text2emotion as te
@@ -33,7 +34,7 @@ def load_image(image_file):
 def print_result_header():
     st.write("")
     st.write("")
-    st.components.v1.html(
+    components.html(
         "<h3 style='color: #0ea5e9; font-family: Source Sans Pro, sans-serif; "
         "font-size: 26px; margin-bottom: 10px; margin-top: 60px;'>Result</h3>"
         "<p style='color: #57534e; font-family: Source Sans Pro, sans-serif; "
@@ -149,9 +150,6 @@ def analyze_video(video_path):
         st.write("No faces detected in the video or unable to detect emotions.")
 
 # Function to render text analysis page
-
-
-# Function to render text analysis page
 def render_text_analysis_page():
     st.title("Sentiment Analyzer😊😐😕😡")
     st.subheader("Text Analysis 📝")
@@ -176,7 +174,7 @@ understanding of its underlying sentiments and emotions.""")
     if st.button('Predict'):
         if user_text != "" and analysis_type is not None:
             st.text("")
-            st.components.v1.html("""
+            components.html("""
                                 <h3 style="color: #0284c7; font-family: Source Sans Pro, sans-serif; font-size: 28px; margin-bottom: 10px; margin-top: 50px;">Result</h3>
                                 """, height=100)
             get_sentiments(user_text, analysis_type)
@@ -184,8 +182,6 @@ understanding of its underlying sentiments and emotions.""")
 # Function to show sidebar and select page
 def show_sidebar():
     st.sidebar.title("Navigation")
-    #st.sidebar.title("Sentiment Analyzer")
-    #st.sidebar.image("https://www.travelmediagroup.com/wp-content/uploads/2022/04/bigstock-Market-Sentiment-Fear-And-Gre-451706057-2880x1800.jpg", use_column_width=True)
     selected_page = st.sidebar.radio("Go to", ["Text", "Image", "Video"])
     return selected_page
 
@@ -204,28 +200,6 @@ def get_sentiments(user_text, analysis_type):
             sentiment_label = "Neutral"
             frequencies = {"Positive": 0, "Neutral": 1, "Negative": 0}
         st.write(f"Sentiment: {sentiment_label}")
-        
-        # Display the sentiment bar chart
-
-
-# Function to get sentiments
-def get_sentiments(user_text, analysis_type):
-    if analysis_type == 'Positive/Negative/Neutral - TextBlob':
-        analysis = TextBlob(user_text)
-        sentiment = analysis.sentiment.polarity
-        if sentiment > 0:
-            sentiment_label = "Positive"
-            frequencies = {"Positive": 1, "Neutral": 0, "Negative": 0}
-        elif sentiment < 0:
-            sentiment_label = "Negative"
-            frequencies = {"Positive": 0, "Neutral": 0, "Negative": 1}
-        else:
-            sentiment_label = "Neutral"
-            frequencies = {"Positive": 0, "Neutral": 1, "Negative": 0}
-        st.write(f"Sentiment: {sentiment_label}")
-        
-        
-
         
         # Display the sentiment bar chart
         fig = go.Figure([go.Bar(x=list(frequencies.keys()), y=list(frequencies.values()))])
