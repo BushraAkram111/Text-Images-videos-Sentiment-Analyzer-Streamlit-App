@@ -9,3 +9,5 @@ flair
 fer
 moviepy
 pandas
+setuptools==70.1.0
+
