@@ -12,6 +12,7 @@ from fer import FER
 from moviepy.editor import VideoFileClip
 import pandas as pd
 from scipy import triu  # Import triu from scipy
+from scipy.linalg import triu  # Import triu from scipy.linalg
 
 # Emoji dictionary
 getEmoji = {
