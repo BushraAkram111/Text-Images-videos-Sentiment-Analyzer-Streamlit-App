@@ -11,3 +11,4 @@ moviepy
 pandas
 scipy==1.10.1
 gensim==4.3.1
+nltk
