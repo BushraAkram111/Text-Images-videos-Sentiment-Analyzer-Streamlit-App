@@ -1,10 +1,4 @@
 import streamlit as st
-import subprocess
-import sys
-import nltk
-from sumy.parsers.plaintext import PlaintextParser
-from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.text_rank import TextRankSummarizer
 import streamlit.components.v1 as components
 from textblob import TextBlob
 from PIL import Image
@@ -18,9 +12,6 @@ from fer import FER
 from moviepy.editor import VideoFileClip
 import pandas as pd
 from scipy.linalg import triu  # Updated import for triu
-
-# Check if the punkt tokenizer is downloaded, if not download it
-nltk.download('punkt')
 
 # Emoji dictionary
 getEmoji = {
@@ -119,7 +110,7 @@ def show_video_page():
     
     st.text("""Upload your video and let's find sentiments in it. The Video Analyzer section 
 processes uploaded videos to detect facial expressions and extract emotional cues. 
-It visualizes dominant emotions such as happiness, sadness, anger, and more, providing 
+It visualizes dominant emotions such as happiness,sadness,anger,and more,providing 
 users with insights into the emotional dynamics depicted in the video content.""")
     st.text("")
     video_file = upload_file(["mp4", "avi", "mov", "mkv"])
@@ -167,6 +158,77 @@ def render_text_analysis_page():
     
     st.text("""In the Text Analysis section, you can input text to analyze its sentiment using 
 two distinct methods. The first method, TextBlob, evaluates the sentiment polarity 
+of the text, categorizing it as Positive, Negative, or Neutral based on the overal
+sentiment score. On the other hand, the text2emotion method detects emotions 
+expressed within the text, identifying the primary emotion as Happy, Sad, Angry, 
+Fearful, or Surprised. Through these analyses, the section provides insights into
+the emotional tone and sentiment conveyed by the input text, facilitating a deeper 
+understanding of its underlying sentiments and emotions.""")
+
+    st.text("")
+    user_text = st.text_input('User Input', placeholder='Enter Your Text')
+    st.text("")
+    analysis_type = st.selectbox(
+        'Type of analysis',
+        ('Positive/Negative/Neutral - TextBlob', 'Happy/Sad/Angry/Fear/Surprise - text2emotion'))
+    st.text("")
+    if st.button('Predict'):
+        if user_text != "" and analysis_type is not None:
+            st.text("")
+            components.html("""
+                                <h3 style="color: #0284c7; font-family: Source Sans Pro, sans-serif; font-size: 28px; margin-bottom: 10px; margin-top: 50px;">Result</h3>
+                                """, height=100)
+            get_sentiments(user_text, analysis_type)
+
+# Function to show sidebar and select page
+def show_sidebar():
+    st.sidebar.title("Navigation")
+    selected_page = st.sidebar.radio("Go to", ["Text", "Image", "Video"])
+    return selected_page
+
+# Function to get sentiments
+def get_sentiments(user_text, analysis_type):
+    if analysis_type == 'Positive/Negative/Neutral - TextBlob':
+        analysis = TextBlob(user_text)
+        sentiment = analysis.sentiment.polarity
+        if sentiment > 0:
+            sentiment_label = "Positive"
+            frequencies = {"Positive": 1, "Neutral": 0, "Negative": 0}
+        elif sentiment < 0:
+            sentiment_label = "Negative"
+            frequencies = {"Positive": 0, "Neutral": 0, "Negative": 1}
+        else:
+            sentiment_label = "Neutral"
+            frequencies = {"Positive": 0, "Neutral": 1, "Negative": 0}
+        st.write(f"Sentiment: {sentiment_label}")
+        st.write(f"TextBlob Polarity: {sentiment:.2f}")
+        st.write(f"Sentiment Frequencies: {frequencies}")
+        
+        # Plot the sentiment frequencies
+        fig = go.Figure([go.Bar(x=list(frequencies.keys()), y=list(frequencies.values()))])
+        fig.update_layout(title='Sentiment Analysis', xaxis_title='Sentiment', yaxis_title='Count')
+        st.plotly_chart(fig)
+
+    elif analysis_type == 'Happy/Sad/Angry/Fear/Surprise - text2emotion':
+        emotions = te.get_emotion(user_text)
+        st.write("Emotions Detected:")
+        st.write(emotions)
+        max_emotion = max(emotions, key=emotions.get)
+        st.write(f"Most Prominent Emotion: {max_emotion} {getEmoji[max_emotion]}")
+        
+        # Plot the emotions
+        fig = go.Figure([go.Bar(x=list(emotions.keys()), y=list(emotions.values()))])
+        fig.update_layout(title='Emotion Analysis', xaxis_title='Emotion', yaxis_title='Score')
+        st.plotly_chart(fig)
+
+# Function to render text analysis page
+def render_text_analysis_page():
+    st.title("Sentiment Analyzer😊😐😕😡")
+    st.subheader("Text Analysis 📝")
+    st.image("https://miro.medium.com/v2/resize:fit:1358/0*V00v1_1CWWcQ3G6G", use_column_width=True)
+    
+    st.text("""In the Text Analysis section, you can input text to analyze its sentiment using 
+two distinct methods. The first method, TextBlob, evaluates the sentiment polarity 
 of the text, categorizing it as Positive, Negative, or Neutral based on the overall
 sentiment score. On the other hand, the text2emotion method detects emotions 
 expressed within the text, identifying the primary emotion as Happy, Sad, Angry, 
@@ -179,7 +241,7 @@ understanding of its underlying sentiments and emotions.""")
     st.text("")
     analysis_type = st.selectbox(
         'Type of analysis',
-        ('Positive/Negative/Neutral - TextBlob', 'Happy/Sad/Angry/Fear/Surprise - text2emotion', 'Text Summarization - TextRank'))
+        ('Positive/Negative/Neutral - TextBlob', 'Happy/Sad/Angry/Fear/Surprise - text2emotion'))
     st.text("")
     if st.button('Predict'):
         if user_text != "" and analysis_type is not None:
@@ -189,44 +251,9 @@ understanding of its underlying sentiments and emotions.""")
                                 """, height=100)
             get_sentiments(user_text, analysis_type)
 
-# Function to get sentiments
-def get_sentiments(user_text, analysis_type):
-    if analysis_type == 'Positive/Negative/Neutral - TextBlob':
-        analysis = TextBlob(user_text)
-        sentiment = analysis.sentiment.polarity
-        if sentiment > 0:
-            st.write(f"The text sentiment is Positive {getEmoji['positive']}")
-        elif sentiment == 0:
-            st.write(f"The text sentiment is Neutral {getEmoji['neutral']}")
-        else:
-            st.write(f"The text sentiment is Negative {getEmoji['negative']}")
-
-    elif analysis_type == 'Happy/Sad/Angry/Fear/Surprise - text2emotion':
-        emotions = te.get_emotion(user_text)
-        max_emotion = max(emotions, key=emotions.get)
-        st.write(f"Detected Emotion: {max_emotion} {getEmoji[max_emotion]}")
-
-    elif analysis_type == 'Text Summarization - TextRank':
-        parser = PlaintextParser.from_string(user_text, Tokenizer('english'))
-        summarizer = TextRankSummarizer()
-        summary = summarizer(parser.document, 3)  # Summarize to 3 sentences
-        summary_text = ' '.join([str(sentence) for sentence in summary])
-        st.write("Summary:")
-        st.write(summary_text)
-
-# Function to show sidebar and select page
-def show_sidebar():
-    st.sidebar.title("Navigation")
-    selected_page = st.sidebar.radio("Go to", ["Text", "Image", "Video"])
-    return selected_page
-
-# Main function to control the flow of the app
+# Main function
 def main():
-    st.set_page_config(page_title="Sentiment Analyzer App", page_icon="😊")
-    st.title("Sentiment Analyzer App")
-    
     page = show_sidebar()
-
     if page == "Text":
         render_text_analysis_page()
     elif page == "Image":
