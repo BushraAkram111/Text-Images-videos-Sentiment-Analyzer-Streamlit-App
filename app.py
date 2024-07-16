@@ -11,7 +11,6 @@ from flair.data import Sentence
 from fer import FER
 from moviepy.editor import VideoFileClip
 import pandas as pd
-from scipy.linalg import triu  # Updated import for triu
 
 # Emoji dictionary
 getEmoji = {
@@ -201,65 +200,34 @@ def get_sentiments(user_text, analysis_type):
             sentiment_label = "Neutral"
             frequencies = {"Positive": 0, "Neutral": 1, "Negative": 0}
         st.write(f"Sentiment: {sentiment_label}")
-        st.write(f"TextBlob Polarity: {sentiment:.2f}")
-        st.write(f"Sentiment Frequencies: {frequencies}")
         
-        # Plot the sentiment frequencies
+        # Display the sentiment bar chart
         fig = go.Figure([go.Bar(x=list(frequencies.keys()), y=list(frequencies.values()))])
-        fig.update_layout(title='Sentiment Analysis', xaxis_title='Sentiment', yaxis_title='Count')
+        fig.update_layout(title='Text Sentiment Analysis', xaxis_title='Sentiment', yaxis_title='Frequency')
         st.plotly_chart(fig)
-
+        
     elif analysis_type == 'Happy/Sad/Angry/Fear/Surprise - text2emotion':
         emotions = te.get_emotion(user_text)
-        st.write("Emotions Detected:")
-        st.write(emotions)
-        max_emotion = max(emotions, key=emotions.get)
-        st.write(f"Most Prominent Emotion: {max_emotion} {getEmoji[max_emotion]}")
+        emotion = max(emotions, key=emotions.get)
+        st.write(f"Emotion: {emotion} {getEmoji[emotion]}")
         
-        # Plot the emotions
+        # Display the emotion bar chart
         fig = go.Figure([go.Bar(x=list(emotions.keys()), y=list(emotions.values()))])
-        fig.update_layout(title='Emotion Analysis', xaxis_title='Emotion', yaxis_title='Score')
+        fig.update_layout(title='Text Emotion Analysis', xaxis_title='Emotion', yaxis_title='Frequency')
         st.plotly_chart(fig)
 
-# Function to render text analysis page
-def render_text_analysis_page():
-    st.title("Sentiment Analyzer😊😐😕😡")
-    st.subheader("Text Analysis 📝")
-    st.image("https://miro.medium.com/v2/resize:fit:1358/0*V00v1_1CWWcQ3G6G", use_column_width=True)
-    
-    st.text("""In the Text Analysis section, you can input text to analyze its sentiment using 
-two distinct methods. The first method, TextBlob, evaluates the sentiment polarity 
-of the text, categorizing it as Positive, Negative, or Neutral based on the overall
-sentiment score. On the other hand, the text2emotion method detects emotions 
-expressed within the text, identifying the primary emotion as Happy, Sad, Angry, 
-Fearful, or Surprised. Through these analyses, the section provides insights into
-the emotional tone and sentiment conveyed by the input text, facilitating a deeper 
-understanding of its underlying sentiments and emotions.""")
-
-    st.text("")
-    user_text = st.text_input('User Input', placeholder='Enter Your Text')
-    st.text("")
-    analysis_type = st.selectbox(
-        'Type of analysis',
-        ('Positive/Negative/Neutral - TextBlob', 'Happy/Sad/Angry/Fear/Surprise - text2emotion'))
-    st.text("")
-    if st.button('Predict'):
-        if user_text != "" and analysis_type is not None:
-            st.text("")
-            components.html("""
-                                <h3 style="color: #0284c7; font-family: Source Sans Pro, sans-serif; font-size: 28px; margin-bottom: 10px; margin-top: 50px;">Result</h3>
-                                """, height=100)
-            get_sentiments(user_text, analysis_type)
-
-# Main function
-def main():
-    page = show_sidebar()
-    if page == "Text":
-        render_text_analysis_page()
-    elif page == "Image":
+# Function to render the selected page
+def render_page(selected_page):
+    if selected_page == "Image":
         show_image_page()
-    elif page == "Video":
+    elif selected_page == "Video":
         show_video_page()
+    elif selected_page == "Text":
+        render_text_analysis_page()
+
+def main():
+    selected_page = show_sidebar()
+    render_page(selected_page)
 
 if __name__ == "__main__":
     main()
